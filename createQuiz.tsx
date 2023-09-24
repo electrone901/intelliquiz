@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useScaffoldContractWrite } from "~~/hooks/scaffold-eth";
+import { File, NFTStorage } from "nft.storage";
 
 function ModalPopup({ isOpen, closePopup }) {
   const [isSuccess, setIsSuccess] = useState(true);
@@ -12,16 +13,6 @@ function ModalPopup({ isOpen, closePopup }) {
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // generateQuiz
-  // const { writeAsync, isLoading, isMining } = useScaffoldContractWrite({
-  //   contractName: "CommunityPets",
-  //   functionName: "donate",
-  //   args: [postId, amount],
-  //   blockConfirmations: 1,
-  //   onBlockConfirmation: txnReceipt => {
-  //     console.log("Transaction blockHash", txnReceipt.blockHash);
-  //   },
-  // });
   return (
     <div className="fixed inset-0 flex items-center justify-center z-60">
       {/* OVERLAY: ONClick will close the modal*/}
@@ -56,7 +47,9 @@ function ModalPopup({ isOpen, closePopup }) {
 }
 
 export default function CreateQuiz() {
-  const [questions, setQuestions] = useState([]);
+  const [url, setUrl] = useState(
+    "https://sepolia-blockscout.scroll.io/address/0x9221bde96f1EdD09716253380C8ba15C2F7d00a2",
+  );
   const [isOpen, setIsOpen] = useState(false);
 
   const openPopup = () => {
@@ -66,9 +59,94 @@ export default function CreateQuiz() {
   const closePopup = () => {
     setIsOpen(false);
   };
+
+  const getDay = async () => {
+    let d = new Date();
+    let ye = new Intl.DateTimeFormat("en", { year: "numeric" }).format(d);
+    let mo = new Intl.DateTimeFormat("en", { month: "short" }).format(d);
+    let da = new Intl.DateTimeFormat("en", { day: "2-digit" }).format(d);
+    return `${mo}-${da}-${ye}`;
+  };
+
+  const saveToNFTStorage = async () => {
+    try {
+      const creationDate = await getDay();
+      const obj = [
+        {
+          id: 1,
+          creationDate,
+          image:
+            "https://images.unsplash.com/photo-1531297484001-80022131f5a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1120&q=80",
+          title: "The basics of ReactJS",
+          description: "Practice the basics of ReactJS and master it",
+          author: "Joe Doe",
+          questions: [
+            {
+              id: 1,
+              question: "What is Reactjs?",
+              options: {
+                a: "It's a dummy data",
+                b: "It's a brand new object",
+                c: "It's a famous coffee",
+                d: "It's a frontend framework for Javascript",
+              },
+              correct_answer: "d",
+            },
+            {
+              id: 2,
+              question: "How do you use Reactjs?",
+              options: {
+                a: "You use React to create frontend interfaces",
+                b: "It's a brand new object",
+                c: "It's a famous coffee",
+                d: "It's a frontend framework for Javascript",
+              },
+              correct_answer: "a",
+            },
+          ],
+          subject: "Technology",
+          author_profession: "Student",
+          grade: "University",
+          language: "English",
+        },
+      ];
+
+      const client = new NFTStorage({ token: process.env.NEXT_PUBLIC_APIKEY });
+
+      const metadata = await client.store({
+        name: "Quiz",
+        description: JSON.stringify(obj),
+        image: new File(["image"], "imageName", { type: "image/*" }),
+      });
+      console.log("metadata", metadata);
+
+      if (metadata) {
+        console.log("metadata URL", metadata?.url);
+        const url = metadata?.url.substring(7);
+        const fullUrl = `https://cloudflare-ipfs.com/ipfs/${url}`;
+        console.log("fullUrl", fullUrl);
+        setUrl(fullUrl);
+        writeAsync();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // generateQuiz
+  const { writeAsync, isLoading, isMining } = useScaffoldContractWrite({
+    contractName: "QuizNFT",
+    functionName: "generateQuiz",
+    args: [url],
+    blockConfirmations: 1,
+    onBlockConfirmation: txnReceipt => {
+      console.log("Transaction blockHash", txnReceipt.blockHash);
+    },
+  });
+
   const generateQuiz = async () => {
     console.log("🚀 ~ file: createQuiz.tsx:26 ~ generateQuiz ~ generateQuiz:");
-
+    saveToNFTStorage();
     openPopup();
     // try {
     //   const response = await fetch("/api/generateQuiz/", {
