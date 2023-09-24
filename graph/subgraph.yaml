@@ -1,0 +1,39 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Memories
+    network: mumbai
+    source:
+      address: '0x127cbf19A44E9ED1C2D5E9Ed1d90F38bC8e976c8'
+      abi: Memories
+      startBlock: 38209765
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - ApprovalForAll
+        - BatchMetadataUpdate
+        - ContributionCreated
+        - MetadataUpdate
+        - Transfer
+      abis:
+        - name: Quizzes
+          file: ./abis/Quizzes.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: BatchMetadataUpdate(uint256,uint256)
+          handler: handleBatchMetadataUpdate
+        - event: ContributionCreated(uint256,string,address)
+          handler: handleContributionCreated
+        - event: MetadataUpdate(uint256)
+          handler: handleMetadataUpdate
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: ./src/quizzes.ts
