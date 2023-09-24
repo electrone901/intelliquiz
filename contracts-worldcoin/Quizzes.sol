@@ -34,19 +34,12 @@ contract Quizzes {
 
     struct Profile {
         uint256 id;
-        string memberName;
+        string points;
         address userWallet;
         uint256 dateToWithdraw;
         uint256 donationBalance;
     }
 
-     struct Fund {
-        uint256 id;
-        string message;
-        uint256 amount;
-        address userWallet;
-        uint256 withdrawDate;
-    }
 
     constructor(
         IWorldID _worldId,
